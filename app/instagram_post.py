@@ -26,12 +26,29 @@ def get_instagram_client(username=None, password=None):
     
     session_file = os.path.join(storage_dir, f"session_{uname}.json")
 
+    session_loaded = False
     if os.path.exists(session_file):
         print(f"Loading saved Instagram session ({session_file})...")
         try:
             cl.load_settings(session_file)
+            session_loaded = True
         except Exception as se:
             print(f"Warning: Could not load saved session: {se}")
+
+    if session_loaded:
+        print("Verifying saved session...")
+        try:
+            cl.get_timeline_feed()
+            print("Instagram login via saved session verified and successful.")
+            return cl
+        except Exception as se:
+            print(f"Saved Instagram session is invalid or expired ({se}). Deleting session file and attempting fresh login...")
+            try:
+                os.remove(session_file)
+            except Exception as e_del:
+                print(f"Warning: Could not remove session file: {e_del}")
+            # Reset client to clear loaded settings/cookies
+            cl = Client()
 
     try:
         print(f"Logging into Instagram as {uname}...")
