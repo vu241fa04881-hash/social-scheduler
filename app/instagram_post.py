@@ -22,25 +22,10 @@ def get_instagram_client(username=None, password=None):
         print("Instagram Error: Credentials not provided")
         return None
 
-    session_file = f"session_{uname}.json" if uname else "session.json"
-
-    if os.path.exists(session_file):
-        print(f"Loading saved Instagram session ({session_file})...")
-        try:
-            cl.load_settings(session_file)
-            if getattr(cl, "sessionid", None):
-                if cl.login_by_sessionid(cl.sessionid):
-                    print("Instagram session restored successfully.")
-                    return cl
-                print("Saved Instagram session is invalid or expired.")
-        except Exception as e:
-            print("Instagram session restore failed:", e)
-
     try:
-        print(f"Logging into Instagram as {uname}...")
+        print(f"Logging into Instagram as {uname} (in-memory)...")
         cl.login(uname, pwd)
-        cl.dump_settings(session_file)
-        print("Instagram login successful and session saved.")
+        print("Instagram login successful.")
         return cl
 
     except Exception as e:

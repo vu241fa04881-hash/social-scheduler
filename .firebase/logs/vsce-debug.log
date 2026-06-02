@@ -1,0 +1,28 @@
+[debug] [2026-06-02T09:35:15.589Z] [Firebase Plugin] Activating Firebase extension.
+[debug] [2026-06-02T09:35:16.936Z] [Firebase Plugin] requireAuthWrapper
+[debug] [2026-06-02T09:35:16.937Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-06-02T09:35:16.938Z] > authorizing via signed-in user (vu.241fa04881@gmail.com)
+[debug] [2026-06-02T09:35:16.939Z] Checked if tokens are valid: false, expires at: 1780392955464
+[debug] [2026-06-02T09:35:16.939Z] Checked if tokens are valid: false, expires at: 1780392955464
+[debug] [2026-06-02T09:35:16.940Z] > refreshing access token with scopes: []
+[debug] [2026-06-02T09:35:16.940Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2026-06-02T09:35:16.941Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-06-02T09:35:16.948Z] [Firebase Plugin] VSCode notification server listening on port 40001
+[info] [Firebase Plugin] Starting SQL Connect toolkit (version 3.4.9) on port 50001
+[debug] [2026-06-02T09:35:18.343Z] 'fdc build' failed with error: Error starting up SQL Connect build: spawnSync C:\Users\Yaswanth\.cache\firebase\emulators\dataconnect-emulator-3.4.9.exe UNKNOWN {"metadata":{"emulator":{"name":"dataconnect"},"message":"'fdc build' failed with error: Error starting up SQL Connect build: spawnSync C:\\Users\\Yaswanth\\.cache\\firebase\\emulators\\dataconnect-emulator-3.4.9.exe UNKNOWN"}}
+[debug] [2026-06-02T09:35:18.343Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: auto_download"}}
+[debug] [2026-06-02T09:35:18.343Z] Ignoring unsupported arg: port {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: port"}}
+[debug] [2026-06-02T09:35:18.343Z] Starting SQL Connect Emulator with command {"binary":"C:\\Users\\Yaswanth\\.cache\\firebase\\emulators\\dataconnect-emulator-3.4.9.exe","args":["--logtostderr","-v=2","dev","--listen=localhost:50001","--config_dir=c:\\Users\\Yaswanth\\Downloads\\CRT-III\\CRT1\\dataconnect","--enable_output_schema_extensions=true","--enable_output_generated_sdk=true"],"optionalArgs":["listen","config_dir","enable_output_schema_extensions","enable_output_generated_sdk"],"joinArgs":true,"shell":false,"port":9399} {"metadata":{"emulator":{"name":"dataconnect"},"message":"Starting SQL Connect Emulator with command {\"binary\":\"C:\\\\Users\\\\Yaswanth\\\\.cache\\\\firebase\\\\emulators\\\\dataconnect-emulator-3.4.9.exe\",\"args\":[\"--logtostderr\",\"-v=2\",\"dev\",\"--listen=localhost:50001\",\"--config_dir=c:\\\\Users\\\\Yaswanth\\\\Downloads\\\\CRT-III\\\\CRT1\\\\dataconnect\",\"--enable_output_schema_extensions=true\",\"--enable_output_generated_sdk=true\"],\"optionalArgs\":[\"listen\",\"config_dir\",\"enable_output_schema_extensions\",\"enable_output_generated_sdk\"],\"joinArgs\":true,\"shell\":false,\"port\":9399}"}}
+[warn] !  dataconnect: Fatal error occurred: 
+   Error: spawn UNKNOWN, 
+   stopping all running emulators {"metadata":{"emulator":{"name":"dataconnect"},"message":"Fatal error occurred: \n   Error: spawn UNKNOWN, \n   stopping all running emulators"}}
+[warn] !  dataconnect: Could not spawn child process for SQL Connect Emulator. {"metadata":{"emulator":{"name":"dataconnect"},"message":"Could not spawn child process for SQL Connect Emulator."}}
+[debug] [2026-06-02T09:35:19.402Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2026-06-02T09:35:19.403Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-06-02T09:35:19.408Z] [Firebase Plugin] User found:  vu.241fa04881@gmail.com
+[info] [Firebase Plugin] (Core:Project) New user detected, fetching projects
+[debug] [2026-06-02T09:35:19.409Z] Checked if tokens are valid: true, expires at: 1780396517403
+[debug] [2026-06-02T09:35:19.409Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects pageSize=1000
+[debug] [2026-06-02T09:35:20.321Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 200
+[debug] [2026-06-02T09:35:20.322Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]
+[info] [Firebase Plugin] Stopping SQL Connect toolkit

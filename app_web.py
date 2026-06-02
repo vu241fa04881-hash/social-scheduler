@@ -11,7 +11,7 @@ try:
 except Exception:
     pass
 from contextlib import redirect_stdout
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
@@ -72,29 +72,51 @@ def restore_scheduled_jobs():
     count = 0
     for post in posts:
         try:
-            (post_id, topic, schedule_time_str, telegram_bot_token, telegram_chat_id, 
-             instagram_username, instagram_password, linkedin_access_token, 
-             linkedin_person_urn, groq_api_key) = post
+            post_id, topic, schedule_time_str = post
             
             run_time = datetime.strptime(schedule_time_str, "%Y-%m-%d %H:%M")
             if run_time > now:
-                creds = {
-                    "TELEGRAM_BOT_TOKEN": telegram_bot_token,
-                    "TELEGRAM_CHAT_ID": telegram_chat_id,
-                    "INSTAGRAM_USERNAME": instagram_username,
-                    "INSTAGRAM_PASSWORD": instagram_password,
-                    "LINKEDIN_ACCESS_TOKEN": linkedin_access_token,
-                    "LINKEDIN_PERSON_URN": linkedin_person_urn,
-                    "GROQ_API_KEY": groq_api_key
-                }
-                # Add to scheduler with the matching post_id key and its custom credentials
+                # Credentials are not stored on disk; restored jobs run with empty credentials (fallback to environment variables)
+                creds = {}
+                # Add to scheduler with the matching post_id key
                 add_job(run_time, publish_post, topic, job_id=f"job_{post_id}", creds=creds)
                 count += 1
         except Exception as e:
             print(f"Failed to restore job: {e}")
-    print(f"[*] Restored {count} scheduled posts into APScheduler.")
+    print(f"[*] Restored {count} scheduled posts into APScheduler. Note: credentials were not stored and must be supplied from environment or memory.")
 
-restore_scheduled_jobs()
+@app.on_event("startup")
+def startup_event():
+    restore_scheduled_jobs()
+    print("\n" + "═" * 60)
+    print("  🚀 Social Scheduler Web Dashboard is running!")
+    print("═" * 60 + "\n")
+    if os.environ.get("RENDER"):
+        print("  Running in Render cloud environment. Skipping browser launch.")
+        return
+
+    import webbrowser
+    try:
+        # Try to locate and open in Chrome explicitly on Windows
+        chrome_paths = [
+            r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+            r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+            r"C:\Users\%USERNAME%\AppData\Local\Google\Chrome\Application\chrome.exe"
+        ]
+        chrome_path = None
+        for path in chrome_paths:
+            expanded = os.path.expandvars(path)
+            if os.path.exists(expanded):
+                chrome_path = expanded
+                break
+        
+        if chrome_path:
+            webbrowser.register('chrome', None, webbrowser.BackgroundBrowser(chrome_path))
+            webbrowser.get('chrome').open("http://localhost:8000")
+        else:
+            webbrowser.open("http://localhost:8000")
+    except Exception as e:
+        print(f"Could not open browser automatically: {e}")
 
 # Pydantic models for API
 class ConfigData(BaseModel):
@@ -129,6 +151,10 @@ class PublishNowData(BaseModel):
     GROQ_API_KEY: str = ""
 
 # Routes
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return Response(status_code=204)
+
 @app.get("/", response_class=HTMLResponse)
 async def get_dashboard():
     template_path = os.path.join(os.path.dirname(__file__), "templates", "index.html")
@@ -194,10 +220,10 @@ async def schedule_new_post(data: ScheduleData):
     }
 
     try:
-        # 1. Save to SQLite database (including credentials) and get the row ID
-        post_id = add_post(data.topic, run_time.strftime("%Y-%m-%d %H:%M"), creds=creds)
+        # 1. Save to SQLite database (without storing credentials) and get the row ID
+        post_id = add_post(data.topic, run_time.strftime("%Y-%m-%d %H:%M"))
         
-        # 2. Add job to scheduler using the unique row ID and custom credentials
+        # 2. Add job to scheduler using the unique row ID and custom credentials (stored in-memory in scheduler)
         add_job(run_time, publish_post, data.topic, job_id=f"job_{post_id}", creds=creds)
         
         return {"status": "success", "message": f"Post scheduled successfully for {run_time}"}

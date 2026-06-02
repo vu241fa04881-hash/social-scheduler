@@ -12,10 +12,12 @@ except Exception:
 # Export for Firebase Cloud Functions (v2)
 try:
     from firebase_functions import https_fn
-    api = https_fn.on_request(app)
-except ImportError:
+    @https_fn.on_request()
+    def api(req: https_fn.Request) -> https_fn.Response:
+        return https_fn.Response("Social Scheduler Backend API")
+except Exception:
     pass
 
 if __name__ == "__main__":
     print("Launching Social Scheduler Web Dashboard on http://localhost:8000")
-    uvicorn.run("app_web:app", host="0.0.0.0", port=8000, reload=False)
+    uvicorn.run("app_web:app", host="0.0.0.0", port=8000, reload=False, access_log=False)
