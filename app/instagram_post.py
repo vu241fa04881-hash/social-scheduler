@@ -52,6 +52,9 @@ def get_instagram_client(username=None, password=None, sessionid=None):
         print(f"Logging into Instagram as {uname}...")
         cl.login(uname, pwd)
         
+        # Verify the session is fully active and not restricted by a checkpoint
+        cl.get_timeline_feed()
+        
         try:
             cl.dump_settings(session_file)
             print(f"Instagram login successful and session saved to {session_file}.")
@@ -64,11 +67,11 @@ def get_instagram_client(username=None, password=None, sessionid=None):
     except Exception as e:
         print("Instagram Login Error:", e)
         print("\n" + "!" * 80)
-        print("  🔒 INSTAGRAM LOGIN CHALLENGE DETECTED!")
-        print("  👉 Instagram has blocked this login attempt because it is from a new location/device.")
+        print("  🔒 INSTAGRAM LOGIN CHALLENGE OR CHECKPOINT DETECTED!")
+        print("  👉 Instagram is blocking actions from this session (e.g., due to suspicious login or new IP).")
         print("  👉 Action Required:")
         print("     1. Open your Instagram app or log in via a browser on this/another device.")
-        print("     2. Look for a security check / login alert notification.")
+        print("     2. Look for a security check, 'Was this you?' alert, or login approval notification.")
         print("     3. Tap 'This was me' or 'It was me' to approve the connection.")
         print("     4. Once approved, retry publishing. The session will be saved persistently.")
         print("!" * 80 + "\n")
