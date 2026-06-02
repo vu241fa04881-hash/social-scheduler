@@ -35,8 +35,8 @@ def read_env_file():
     env_vars = {
         "TELEGRAM_BOT_TOKEN": "",
         "TELEGRAM_CHAT_ID": "",
-        "INSTAGRAM_USERNAME": "",
-        "INSTAGRAM_PASSWORD": "",
+        "INSTAGRAM_BUSINESS_ACCOUNT_ID": "",
+        "INSTAGRAM_ACCESS_TOKEN": "",
         "LINKEDIN_ACCESS_TOKEN": "",
         "LINKEDIN_PERSON_URN": "",
         "GROQ_API_KEY": ""
@@ -122,8 +122,8 @@ def startup_event():
 class ConfigData(BaseModel):
     TELEGRAM_BOT_TOKEN: str
     TELEGRAM_CHAT_ID: str
-    INSTAGRAM_USERNAME: str
-    INSTAGRAM_PASSWORD: str
+    INSTAGRAM_BUSINESS_ACCOUNT_ID: str
+    INSTAGRAM_ACCESS_TOKEN: str
     LINKEDIN_ACCESS_TOKEN: str
     LINKEDIN_PERSON_URN: str
     GROQ_API_KEY: str
@@ -134,8 +134,8 @@ class ScheduleData(BaseModel):
     time: str
     TELEGRAM_BOT_TOKEN: str = ""
     TELEGRAM_CHAT_ID: str = ""
-    INSTAGRAM_USERNAME: str = ""
-    INSTAGRAM_PASSWORD: str = ""
+    INSTAGRAM_BUSINESS_ACCOUNT_ID: str = ""
+    INSTAGRAM_ACCESS_TOKEN: str = ""
     LINKEDIN_ACCESS_TOKEN: str = ""
     LINKEDIN_PERSON_URN: str = ""
     GROQ_API_KEY: str = ""
@@ -144,8 +144,8 @@ class PublishNowData(BaseModel):
     topic: str
     TELEGRAM_BOT_TOKEN: str = ""
     TELEGRAM_CHAT_ID: str = ""
-    INSTAGRAM_USERNAME: str = ""
-    INSTAGRAM_PASSWORD: str = ""
+    INSTAGRAM_BUSINESS_ACCOUNT_ID: str = ""
+    INSTAGRAM_ACCESS_TOKEN: str = ""
     LINKEDIN_ACCESS_TOKEN: str = ""
     LINKEDIN_PERSON_URN: str = ""
     GROQ_API_KEY: str = ""
@@ -169,8 +169,8 @@ async def get_config():
     return {
         "TELEGRAM_BOT_TOKEN": "",
         "TELEGRAM_CHAT_ID": "",
-        "INSTAGRAM_USERNAME": "",
-        "INSTAGRAM_PASSWORD": "",
+        "INSTAGRAM_BUSINESS_ACCOUNT_ID": "",
+        "INSTAGRAM_ACCESS_TOKEN": "",
         "LINKEDIN_ACCESS_TOKEN": "",
         "LINKEDIN_PERSON_URN": "",
         "GROQ_API_KEY": ""
@@ -212,8 +212,8 @@ async def schedule_new_post(data: ScheduleData):
     creds = {
         "TELEGRAM_BOT_TOKEN": data.TELEGRAM_BOT_TOKEN,
         "TELEGRAM_CHAT_ID": data.TELEGRAM_CHAT_ID,
-        "INSTAGRAM_USERNAME": data.INSTAGRAM_USERNAME,
-        "INSTAGRAM_PASSWORD": data.INSTAGRAM_PASSWORD,
+        "INSTAGRAM_BUSINESS_ACCOUNT_ID": data.INSTAGRAM_BUSINESS_ACCOUNT_ID,
+        "INSTAGRAM_ACCESS_TOKEN": data.INSTAGRAM_ACCESS_TOKEN,
         "LINKEDIN_ACCESS_TOKEN": data.LINKEDIN_ACCESS_TOKEN,
         "LINKEDIN_PERSON_URN": data.LINKEDIN_PERSON_URN,
         "GROQ_API_KEY": data.GROQ_API_KEY
@@ -249,8 +249,8 @@ async def publish_immediately(data: PublishNowData):
     creds = {
         "TELEGRAM_BOT_TOKEN": data.TELEGRAM_BOT_TOKEN,
         "TELEGRAM_CHAT_ID": data.TELEGRAM_CHAT_ID,
-        "INSTAGRAM_USERNAME": data.INSTAGRAM_USERNAME,
-        "INSTAGRAM_PASSWORD": data.INSTAGRAM_PASSWORD,
+        "INSTAGRAM_BUSINESS_ACCOUNT_ID": data.INSTAGRAM_BUSINESS_ACCOUNT_ID,
+        "INSTAGRAM_ACCESS_TOKEN": data.INSTAGRAM_ACCESS_TOKEN,
         "LINKEDIN_ACCESS_TOKEN": data.LINKEDIN_ACCESS_TOKEN,
         "LINKEDIN_PERSON_URN": data.LINKEDIN_PERSON_URN,
         "GROQ_API_KEY": data.GROQ_API_KEY

@@ -54,7 +54,7 @@ def publish_post(topic, creds=None):
     if not image_prompt:
         print("Warning: Image prompt block not found or empty.")
 
-    generated_image_path = generate_post_image(
+    local_image_path, public_image_url = generate_post_image(
         image_prompt,
         output_path=f"generated_image_{uuid.uuid4().hex}.jpg"
     )
@@ -63,9 +63,9 @@ def publish_post(topic, creds=None):
 
     post_instagram(
         instagram_content,
-        generated_image_path,
-        username=creds.get("INSTAGRAM_USERNAME"),
-        password=creds.get("INSTAGRAM_PASSWORD")
+        public_image_url,
+        instagram_business_account_id=creds.get("INSTAGRAM_BUSINESS_ACCOUNT_ID"),
+        access_token=creds.get("INSTAGRAM_ACCESS_TOKEN")
     )
     post_linkedin(
         linkedin_content,

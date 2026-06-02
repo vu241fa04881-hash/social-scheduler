@@ -1,107 +1,91 @@
 import os
-import certifi
+import time
+import requests
 from dotenv import load_dotenv
-from instagrapi import Client
-
-os.environ['SSL_CERT_FILE'] = certifi.where()
 
 load_dotenv()
 
-def get_instagram_client(username=None, password=None):
-    cl = Client()
-
+def post_instagram(caption, image_url, instagram_business_account_id=None, access_token=None):
     load_dotenv(override=True)
-    uname = username or os.getenv("INSTAGRAM_USERNAME")
-    pwd = password or os.getenv("INSTAGRAM_PASSWORD")
+    ig_user_id = instagram_business_account_id or os.getenv("INSTAGRAM_BUSINESS_ACCOUNT_ID")
+    token = access_token or os.getenv("INSTAGRAM_ACCESS_TOKEN")
+
+    if not ig_user_id or not token:
+        print("Instagram Error: INSTAGRAM_BUSINESS_ACCOUNT_ID or INSTAGRAM_ACCESS_TOKEN not provided")
+        return
+
+    print("Uploading photo to Instagram via Graph API...")
     
-    if not uname or not pwd:
-        print("Instagram Error: Credentials not provided")
-        return None
-
-    # Determine persistent directory based on DATABASE_PATH
-    db_path = os.environ.get("DATABASE_PATH", "data/scheduled_posts.db")
-    storage_dir = os.path.dirname(db_path) or "data"
-    if not os.path.exists(storage_dir):
-        os.makedirs(storage_dir, exist_ok=True)
+    # Step 1: Create media container
+    # Endpoint: POST /v19.0/{ig-user-id}/media
+    url = f"https://graph.facebook.com/v19.0/{ig_user_id}/media"
+    payload = {
+        "image_url": image_url,
+        "caption": caption,
+        "access_token": token
+    }
     
-    session_file = os.path.join(storage_dir, f"session_{uname}.json")
-
-    session_loaded = False
-    if os.path.exists(session_file):
-        print(f"Loading saved Instagram session ({session_file})...")
-        try:
-            cl.load_settings(session_file)
-            session_loaded = True
-        except Exception as se:
-            print(f"Warning: Could not load saved session: {se}")
-
-    if session_loaded:
-        print("Verifying saved session...")
-        try:
-            cl.get_timeline_feed()
-            print("Instagram login via saved session verified and successful.")
-            return cl
-        except Exception as se:
-            print(f"Saved Instagram session is invalid or expired ({se}). Deleting session file and attempting fresh login...")
-            try:
-                os.remove(session_file)
-            except Exception as e_del:
-                print(f"Warning: Could not remove session file: {e_del}")
-            # Reset client to clear loaded settings/cookies
-            cl = Client()
-
     try:
-        print(f"Logging into Instagram as {uname}...")
-        cl.login(uname, pwd)
+        response = requests.post(url, data=payload, timeout=30)
+        response_data = response.json()
         
-        # Verify the session is fully active and not restricted by a checkpoint
-        cl.get_timeline_feed()
-        
-        try:
-            cl.dump_settings(session_file)
-            print(f"Instagram login successful and session saved to {session_file}.")
-        except Exception as de:
-            print(f"Warning: Could not save session settings: {de}")
-            print("Instagram login successful.")
+        if response.status_code != 200:
+            print("Instagram Media Container Error:", response_data)
+            return
             
-        return cl
-
+        container_id = response_data.get("id")
+        if not container_id:
+            print("Instagram Error: Failed to retrieve container ID")
+            return
+            
+        print(f"Media container created successfully (ID: {container_id}).")
+        
+        # Step 2: Poll container status until FINISHED
+        # Endpoint: GET /v19.0/{container-id}?fields=status_code
+        status_url = f"https://graph.facebook.com/v19.0/{container_id}"
+        status_params = {
+            "fields": "status_code",
+            "access_token": token
+        }
+        
+        print("Waiting for media container to finish processing...")
+        max_attempts = 12  # Try for 1 minute
+        for attempt in range(max_attempts):
+            time.sleep(5)
+            status_response = requests.get(status_url, params=status_params, timeout=10)
+            status_data = status_response.json()
+            
+            if status_response.status_code != 200:
+                print("Warning: Failed to check container status:", status_data)
+                continue
+                
+            status_code = status_data.get("status_code")
+            print(f"Container status: {status_code} (attempt {attempt+1}/{max_attempts})")
+            
+            if status_code == "FINISHED":
+                break
+            elif status_code == "ERROR":
+                print("Instagram Error: Media container processing failed.")
+                return
+        else:
+            print("Instagram Error: Container processing timed out.")
+            return
+            
+        # Step 3: Publish container
+        # Endpoint: POST /v19.0/{ig-user-id}/media_publish
+        publish_url = f"https://graph.facebook.com/v19.0/{ig_user_id}/media_publish"
+        publish_payload = {
+            "creation_id": container_id,
+            "access_token": token
+        }
+        
+        publish_response = requests.post(publish_url, data=publish_payload, timeout=30)
+        publish_data = publish_response.json()
+        
+        if publish_response.status_code == 200:
+            print(f"Instagram Post Published Successfully (Media ID: {publish_data.get('id')})")
+        else:
+            print("Instagram Publish Error:", publish_data)
+            
     except Exception as e:
-        print("Instagram Login Error:", e)
-        print("\n" + "!" * 80)
-        print("  🔒 INSTAGRAM LOGIN CHALLENGE OR CHECKPOINT DETECTED!")
-        print("  👉 Instagram is blocking actions from this session (e.g., due to suspicious login or new IP).")
-        print("  👉 Action Required:")
-        print("     1. Open your Instagram app or log in via a browser on this/another device.")
-        print("     2. Look for a security check, 'Was this you?' alert, or login approval notification.")
-        print("     3. Tap 'This was me' or 'It was me' to approve the connection.")
-        print("     4. Once approved, retry publishing. The session will be saved persistently.")
-        print("!" * 80 + "\n")
-        return None
-
-
-def post_instagram(caption, image_path, username=None, password=None):
-
-    if not os.path.exists(image_path):
-        print(f"Instagram Error: '{image_path}' not found.")
-        return
-
-    cl = get_instagram_client(username, password)
-
-    if cl is None:
-        return
-
-    try:
-
-        print("Uploading photo to Instagram...")
-
-        cl.photo_upload(
-            image_path,
-            caption
-        )
-
-        print("Instagram Post Published Successfully")
-
-    except Exception as e:
-
-        print("Instagram Upload Error:", e)
+        print("Instagram Graph API Error:", e)

@@ -22,7 +22,7 @@ def generate_post_image(image_prompt, output_path="generated_image.jpg"):
             image.save(output_path, 'JPEG', quality=95)
             
             print(f"✅ Dynamic photo asset saved successfully at: {output_path}")
-            return output_path
+            return output_path, url
         else:
             print(f"Image API returned an error status code: {response.status_code}")
             
@@ -30,4 +30,4 @@ def generate_post_image(image_prompt, output_path="generated_image.jpg"):
         print(f"Image Generation Error: {e}")
         
     print("⚠️ Using static sample image layout fallback.")
-    return "sample.jpg"
+    return "sample.jpg", "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1080&q=80"
