@@ -1,0 +1,34 @@
+# Python virtual environment
+venv/
+.venv/
+env/
+ENV/
+
+# Environment configurations (contains sensitive keys)
+.env
+
+# Database directories/files
+data/
+*.db
+*.sqlite
+
+# Cached session settings (Instagram/LinkedIn)
+session*.json
+
+# Generated media assets
+generated_image*.jpg
+generated_image*.png
+
+# Python compiled cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# OAuth helper scripts containing secrets
+get_token.py
+get_profile.py
