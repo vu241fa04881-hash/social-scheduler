@@ -7,15 +7,26 @@ os.environ['SSL_CERT_FILE'] = certifi.where()
 
 load_dotenv()
 
-def get_instagram_client(username=None, password=None):
+def get_instagram_client(username=None, password=None, sessionid=None):
     cl = Client()
 
     load_dotenv(override=True)
     uname = username or os.getenv("INSTAGRAM_USERNAME")
     pwd = password or os.getenv("INSTAGRAM_PASSWORD")
+    sessid = sessionid or os.getenv("INSTAGRAM_SESSIONID")
     
+    if sessid:
+        print(f"Logging into Instagram using session ID...")
+        try:
+            cl.login_by_sessionid(sessid)
+            print("Instagram login by session ID successful.")
+            return cl
+        except Exception as e:
+            print("Instagram Login by Session ID Error:", e)
+            print("Falling back to username/password login if available...")
+
     if not uname or not pwd:
-        print("Instagram Error: Credentials not provided")
+        print("Instagram Error: Credentials not provided (username/password or sessionid required)")
         return None
 
     # Determine persistent directory based on DATABASE_PATH
@@ -60,13 +71,13 @@ def get_instagram_client(username=None, password=None):
         return None
 
 
-def post_instagram(caption, image_path, username=None, password=None):
+def post_instagram(caption, image_path, username=None, password=None, sessionid=None):
 
     if not os.path.exists(image_path):
         print(f"Instagram Error: '{image_path}' not found.")
         return
 
-    cl = get_instagram_client(username, password)
+    cl = get_instagram_client(username, password, sessionid)
 
     if cl is None:
         return

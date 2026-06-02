@@ -65,7 +65,8 @@ def publish_post(topic, creds=None):
         instagram_content,
         generated_image_path,
         username=creds.get("INSTAGRAM_USERNAME"),
-        password=creds.get("INSTAGRAM_PASSWORD")
+        password=creds.get("INSTAGRAM_PASSWORD"),
+        sessionid=creds.get("INSTAGRAM_SESSIONID")
     )
     post_linkedin(
         linkedin_content,
