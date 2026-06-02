@@ -124,7 +124,6 @@ class ConfigData(BaseModel):
     TELEGRAM_CHAT_ID: str
     INSTAGRAM_USERNAME: str
     INSTAGRAM_PASSWORD: str
-    INSTAGRAM_SESSIONID: str
     LINKEDIN_ACCESS_TOKEN: str
     LINKEDIN_PERSON_URN: str
     GROQ_API_KEY: str
@@ -137,7 +136,6 @@ class ScheduleData(BaseModel):
     TELEGRAM_CHAT_ID: str = ""
     INSTAGRAM_USERNAME: str = ""
     INSTAGRAM_PASSWORD: str = ""
-    INSTAGRAM_SESSIONID: str = ""
     LINKEDIN_ACCESS_TOKEN: str = ""
     LINKEDIN_PERSON_URN: str = ""
     GROQ_API_KEY: str = ""
@@ -148,7 +146,6 @@ class PublishNowData(BaseModel):
     TELEGRAM_CHAT_ID: str = ""
     INSTAGRAM_USERNAME: str = ""
     INSTAGRAM_PASSWORD: str = ""
-    INSTAGRAM_SESSIONID: str = ""
     LINKEDIN_ACCESS_TOKEN: str = ""
     LINKEDIN_PERSON_URN: str = ""
     GROQ_API_KEY: str = ""
@@ -174,7 +171,6 @@ async def get_config():
         "TELEGRAM_CHAT_ID": "",
         "INSTAGRAM_USERNAME": "",
         "INSTAGRAM_PASSWORD": "",
-        "INSTAGRAM_SESSIONID": "",
         "LINKEDIN_ACCESS_TOKEN": "",
         "LINKEDIN_PERSON_URN": "",
         "GROQ_API_KEY": ""
@@ -218,7 +214,6 @@ async def schedule_new_post(data: ScheduleData):
         "TELEGRAM_CHAT_ID": data.TELEGRAM_CHAT_ID,
         "INSTAGRAM_USERNAME": data.INSTAGRAM_USERNAME,
         "INSTAGRAM_PASSWORD": data.INSTAGRAM_PASSWORD,
-        "INSTAGRAM_SESSIONID": data.INSTAGRAM_SESSIONID,
         "LINKEDIN_ACCESS_TOKEN": data.LINKEDIN_ACCESS_TOKEN,
         "LINKEDIN_PERSON_URN": data.LINKEDIN_PERSON_URN,
         "GROQ_API_KEY": data.GROQ_API_KEY
@@ -256,7 +251,6 @@ async def publish_immediately(data: PublishNowData):
         "TELEGRAM_CHAT_ID": data.TELEGRAM_CHAT_ID,
         "INSTAGRAM_USERNAME": data.INSTAGRAM_USERNAME,
         "INSTAGRAM_PASSWORD": data.INSTAGRAM_PASSWORD,
-        "INSTAGRAM_SESSIONID": data.INSTAGRAM_SESSIONID,
         "LINKEDIN_ACCESS_TOKEN": data.LINKEDIN_ACCESS_TOKEN,
         "LINKEDIN_PERSON_URN": data.LINKEDIN_PERSON_URN,
         "GROQ_API_KEY": data.GROQ_API_KEY
