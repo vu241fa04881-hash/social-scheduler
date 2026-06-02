@@ -19,10 +19,14 @@ def get_instagram_client(username=None, password=None, sessionid=None):
         print(f"Logging into Instagram using session ID...")
         try:
             cl.login_by_sessionid(sessid)
-            print("Instagram login by session ID successful.")
+            # Verify the session ID is actually valid and active by making a quick request
+            cl.get_timeline_feed()
+            print("Instagram login by session ID verified and successful.")
             return cl
         except Exception as e:
-            print("Instagram Login by Session ID Error:", e)
+            print("Instagram Login by Session ID Verification Failed:", e)
+            print("👉 The Session ID may be expired, invalid, or blocked by Instagram.")
+            print("👉 Please copy a fresh 'sessionid' cookie from your browser and try again.")
             print("Falling back to username/password login if available...")
 
     if not uname or not pwd:
