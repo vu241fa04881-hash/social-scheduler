@@ -17,7 +17,8 @@ try:
         return https_fn.Response("Social Scheduler Backend API")
 except Exception:
     pass
-
 if __name__ == "__main__":
-    print("Launching Social Scheduler Web Dashboard on http://localhost:8000")
-    uvicorn.run("app_web:app", host="0.0.0.0", port=8000, reload=False, access_log=False)
+    import os
+    port = int(os.environ.get("PORT", 8000))
+    print(f"Launching Social Scheduler Web Dashboard on http://localhost:{port}")
+    uvicorn.run("app_web:app", host="0.0.0.0", port=port, reload=False, access_log=False)
