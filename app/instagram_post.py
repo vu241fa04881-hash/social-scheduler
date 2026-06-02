@@ -18,7 +18,7 @@ def post_instagram(caption, image_url, instagram_business_account_id=None, acces
     
     # Step 1: Create media container
     # Endpoint: POST /v19.0/{ig-user-id}/media
-    url = f"https://graph.instagram.com/v19.0/{ig_user_id}/media"
+    url = f"https://graph.facebook.com/v19.0/{ig_user_id}/media"
     payload = {
         "image_url": image_url,
         "caption": caption,
@@ -42,7 +42,7 @@ def post_instagram(caption, image_url, instagram_business_account_id=None, acces
         
         # Step 2: Poll container status until FINISHED
         # Endpoint: GET /v19.0/{container-id}?fields=status_code
-        status_url = f"https://graph.instagram.com/v19.0/{container_id}"
+        status_url = f"https://graph.facebook.com/v19.0/{container_id}"
         status_params = {
             "fields": "status_code",
             "access_token": token
@@ -73,7 +73,7 @@ def post_instagram(caption, image_url, instagram_business_account_id=None, acces
             
         # Step 3: Publish container
         # Endpoint: POST /v19.0/{ig-user-id}/media_publish
-        publish_url = f"https://graph.instagram.com/v19.0/{ig_user_id}/media_publish"
+        publish_url = f"https://graph.facebook.com/v19.0/{ig_user_id}/media_publish"
         publish_payload = {
             "creation_id": container_id,
             "access_token": token
