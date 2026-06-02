@@ -1,5 +1,6 @@
 import sys
 import uvicorn
+from app_web import app
 
 # Reconfigure stdout/stderr to utf-8 to prevent UnicodeEncodeError with emojis on Windows
 try:
@@ -8,7 +9,12 @@ try:
 except Exception:
     pass
 
-from app_web import app
+# Export for Firebase Cloud Functions (v2)
+try:
+    from firebase_functions import https_fn
+    api = https_fn.on_request(app)
+except ImportError:
+    pass
 
 if __name__ == "__main__":
     print("Launching Social Scheduler Web Dashboard on http://localhost:8000")
