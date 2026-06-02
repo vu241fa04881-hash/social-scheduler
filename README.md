@@ -1,5 +1,7 @@
 # Social Media Scheduler Dashboard
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/vu241fa04881-hash/social-scheduler)
+
 A modern, deployable FastAPI web application designed to automatically draft platform-specific content, generate dynamic visual assets, and coordinate delivery across **Telegram**, **Instagram**, and **LinkedIn**.
 
 This dashboard features a premium glassmorphic dark-theme UI and implements a decentralized client-side credentials architecture, allowing anyone to access the deployment and publish posts to their respective social accounts securely.
