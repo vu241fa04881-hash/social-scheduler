@@ -32,3 +32,8 @@ Thumbs.db
 # OAuth helper scripts containing secrets
 get_token.py
 get_profile.py
+
+# Node package dependencies
+node_modules/
+package-lock.json
+package.json
