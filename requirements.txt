@@ -11,3 +11,4 @@ pillow>=10.0.0
 certifi>=2024.2.2
 firebase-functions>=0.1.0
 firebase-admin>=6.0.0
+beautifulsoup4>=4.12.0
