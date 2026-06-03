@@ -12,8 +12,10 @@ try:
         sys.stderr.reconfigure(encoding='utf-8', errors='backslashreplace')
 except Exception:
     pass
+import shutil
+import uuid
 from contextlib import redirect_stdout
-from fastapi import FastAPI, HTTPException, Response
+from fastapi import FastAPI, HTTPException, Response, UploadFile, File
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
@@ -75,14 +77,18 @@ def restore_scheduled_jobs():
     count = 0
     for post in posts:
         try:
-            post_id, topic, schedule_time_str = post
+            if len(post) == 5:
+                post_id, topic, schedule_time_str, website_url, image_path = post
+            else:
+                post_id, topic, schedule_time_str = post
+                website_url, image_path = "", ""
             
             run_time = datetime.strptime(schedule_time_str, "%Y-%m-%d %H:%M")
             if run_time > now:
                 # Credentials are not stored on disk; restored jobs run with empty credentials (fallback to environment variables)
                 creds = {}
                 # Add to scheduler with the matching post_id key
-                add_job(run_time, publish_post, topic, job_id=f"job_{post_id}", creds=creds)
+                add_job(run_time, publish_post, topic, job_id=f"job_{post_id}", creds=creds, website_url=website_url, image_path=image_path)
                 count += 1
         except Exception as e:
             print(f"Failed to restore job: {e}")
@@ -136,6 +142,8 @@ class ScheduleData(BaseModel):
     topic: str
     date: str
     time: str
+    website_url: str = ""
+    image_path: str = ""
     TELEGRAM_BOT_TOKEN: str = ""
     TELEGRAM_CHAT_ID: str = ""
     INSTAGRAM_BUSINESS_ACCOUNT_ID: str = ""
@@ -147,6 +155,8 @@ class ScheduleData(BaseModel):
 
 class PublishNowData(BaseModel):
     topic: str
+    website_url: str = ""
+    image_path: str = ""
     TELEGRAM_BOT_TOKEN: str = ""
     TELEGRAM_CHAT_ID: str = ""
     INSTAGRAM_BUSINESS_ACCOUNT_ID: str = ""
@@ -188,16 +198,40 @@ async def save_config():
     # Stub endpoint, credentials are now managed client-side
     return {"status": "success", "message": "Saved locally in browser."}
 
+@app.post("/api/upload")
+async def upload_image(file: UploadFile = File(...)):
+    try:
+        os.makedirs("uploads", exist_ok=True)
+        file_extension = os.path.splitext(file.filename)[1]
+        if not file_extension:
+            file_extension = ".jpg"
+        filename = f"{uuid.uuid4().hex}{file_extension}"
+        file_path = os.path.join("uploads", filename)
+        
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+            
+        return {"status": "success", "image_path": file_path}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Image upload failed: {str(e)}")
+
 @app.get("/api/posts")
 async def list_posts():
     try:
         posts = get_posts()
         formatted_posts = []
         for post in posts:
+            if len(post) == 5:
+                post_id, topic, schedule_time, website_url, image_path = post
+            else:
+                post_id, topic, schedule_time = post
+                website_url, image_path = "", ""
             formatted_posts.append({
-                "id": post[0],
-                "topic": post[1],
-                "schedule_time": post[2]
+                "id": post_id,
+                "topic": topic,
+                "schedule_time": schedule_time,
+                "website_url": website_url,
+                "image_path": image_path
             })
         return formatted_posts
     except Exception as e:
@@ -229,10 +263,23 @@ async def schedule_new_post(data: ScheduleData):
 
     try:
         # 1. Save to SQLite database (without storing credentials) and get the row ID
-        post_id = add_post(data.topic, run_time.strftime("%Y-%m-%d %H:%M"))
+        post_id = add_post(
+            data.topic, 
+            run_time.strftime("%Y-%m-%d %H:%M"),
+            website_url=data.website_url,
+            image_path=data.image_path
+        )
         
         # 2. Add job to scheduler using the unique row ID and custom credentials (stored in-memory in scheduler)
-        add_job(run_time, publish_post, data.topic, job_id=f"job_{post_id}", creds=creds)
+        add_job(
+            run_time, 
+            publish_post, 
+            data.topic, 
+            job_id=f"job_{post_id}", 
+            creds=creds,
+            website_url=data.website_url,
+            image_path=data.image_path
+        )
         
         return {"status": "success", "message": f"Post scheduled successfully for {run_time}"}
     except Exception as e:
@@ -269,7 +316,12 @@ async def publish_immediately(data: PublishNowData):
     log_stream = io.StringIO()
     try:
         with redirect_stdout(log_stream):
-            publish_post(data.topic, creds=creds)
+            publish_post(
+                data.topic, 
+                creds=creds,
+                website_url=data.website_url,
+                image_path=data.image_path
+            )
         logs = log_stream.getvalue()
         return {
             "status": "success",

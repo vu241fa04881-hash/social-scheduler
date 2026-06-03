@@ -5,13 +5,13 @@ scheduler = BackgroundScheduler()
 scheduler.start()
 
 
-def add_job(run_time, func, topic, job_id=None, creds=None):
+def add_job(run_time, func, topic, job_id=None, creds=None, website_url=None, image_path=None):
 
     scheduler.add_job(
         func,
         trigger="date",
         run_date=run_time,
-        args=[topic, creds],
+        args=[topic, creds, website_url, image_path],
         id=job_id
     )
 

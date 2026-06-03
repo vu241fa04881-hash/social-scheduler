@@ -25,13 +25,21 @@ def create_table():
             print("Old scheduled_posts table structure containing credentials detected. Migrating to clean schema...")
             cursor.execute("DROP TABLE scheduled_posts")
             table_exists = False
+        else:
+            # Check for website_url and image_path and add them dynamically
+            if "website_url" not in columns:
+                cursor.execute("ALTER TABLE scheduled_posts ADD COLUMN website_url TEXT DEFAULT ''")
+            if "image_path" not in columns:
+                cursor.execute("ALTER TABLE scheduled_posts ADD COLUMN image_path TEXT DEFAULT ''")
             
     if not table_exists:
         cursor.execute("""
         CREATE TABLE scheduled_posts(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             topic TEXT NOT NULL,
-            schedule_time TEXT NOT NULL
+            schedule_time TEXT NOT NULL,
+            website_url TEXT DEFAULT '',
+            image_path TEXT DEFAULT ''
         )
         """)
         
@@ -39,16 +47,16 @@ def create_table():
     conn.close()
 
 
-def add_post(topic, schedule_time, creds=None):
+def add_post(topic, schedule_time, website_url="", image_path=""):
     
     conn = sqlite3.connect(DB_PATH)
     
     cursor = conn.cursor()
 
     cursor.execute("""
-    INSERT INTO scheduled_posts (topic, schedule_time)
-    VALUES (?, ?)
-    """, (topic, schedule_time))
+    INSERT INTO scheduled_posts (topic, schedule_time, website_url, image_path)
+    VALUES (?, ?, ?, ?)
+    """, (topic, schedule_time, website_url, image_path))
 
     post_id = cursor.lastrowid
 
@@ -62,7 +70,7 @@ def get_posts():
     cursor = conn.cursor()
 
     cursor.execute("""
-    SELECT id, topic, schedule_time
+    SELECT id, topic, schedule_time, website_url, image_path
     FROM scheduled_posts
     """)
 
