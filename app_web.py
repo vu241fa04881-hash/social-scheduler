@@ -4,10 +4,12 @@ import sys
 import sqlite3
 from datetime import datetime
 
-# Reconfigure stdout/stderr to utf-8 to prevent UnicodeEncodeError with emojis on Windows
+# Reconfigure stdout/stderr to prevent UnicodeEncodeError with emojis on Windows
 try:
-    sys.stdout.reconfigure(encoding='utf-8')
-    sys.stderr.reconfigure(encoding='utf-8')
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(encoding='utf-8', errors='backslashreplace')
+    if hasattr(sys.stderr, 'reconfigure'):
+        sys.stderr.reconfigure(encoding='utf-8', errors='backslashreplace')
 except Exception:
     pass
 from contextlib import redirect_stdout
@@ -39,7 +41,8 @@ def read_env_file():
         "INSTAGRAM_ACCESS_TOKEN": "",
         "LINKEDIN_ACCESS_TOKEN": "",
         "LINKEDIN_PERSON_URN": "",
-        "GROQ_API_KEY": ""
+        "GROQ_API_KEY": "",
+        "POLLINATIONS_API_KEY": ""
     }
     if os.path.exists(".env"):
         with open(".env", "r", encoding="utf-8") as f:
@@ -89,7 +92,7 @@ def restore_scheduled_jobs():
 def startup_event():
     restore_scheduled_jobs()
     print("\n" + "═" * 60)
-    print("  🚀 Social Scheduler Web Dashboard is running!")
+    print("  [*] Social Scheduler Web Dashboard is running!")
     print("═" * 60 + "\n")
     if os.environ.get("RENDER"):
         print("  Running in Render cloud environment. Skipping browser launch.")
@@ -127,6 +130,7 @@ class ConfigData(BaseModel):
     LINKEDIN_ACCESS_TOKEN: str
     LINKEDIN_PERSON_URN: str
     GROQ_API_KEY: str
+    POLLINATIONS_API_KEY: str
 
 class ScheduleData(BaseModel):
     topic: str
@@ -139,6 +143,7 @@ class ScheduleData(BaseModel):
     LINKEDIN_ACCESS_TOKEN: str = ""
     LINKEDIN_PERSON_URN: str = ""
     GROQ_API_KEY: str = ""
+    POLLINATIONS_API_KEY: str = ""
 
 class PublishNowData(BaseModel):
     topic: str
@@ -149,6 +154,7 @@ class PublishNowData(BaseModel):
     LINKEDIN_ACCESS_TOKEN: str = ""
     LINKEDIN_PERSON_URN: str = ""
     GROQ_API_KEY: str = ""
+    POLLINATIONS_API_KEY: str = ""
 
 # Routes
 @app.get("/favicon.ico", include_in_schema=False)
@@ -173,7 +179,8 @@ async def get_config():
         "INSTAGRAM_ACCESS_TOKEN": "",
         "LINKEDIN_ACCESS_TOKEN": "",
         "LINKEDIN_PERSON_URN": "",
-        "GROQ_API_KEY": ""
+        "GROQ_API_KEY": "",
+        "POLLINATIONS_API_KEY": ""
     }
 
 @app.post("/api/config")
@@ -216,7 +223,8 @@ async def schedule_new_post(data: ScheduleData):
         "INSTAGRAM_ACCESS_TOKEN": data.INSTAGRAM_ACCESS_TOKEN,
         "LINKEDIN_ACCESS_TOKEN": data.LINKEDIN_ACCESS_TOKEN,
         "LINKEDIN_PERSON_URN": data.LINKEDIN_PERSON_URN,
-        "GROQ_API_KEY": data.GROQ_API_KEY
+        "GROQ_API_KEY": data.GROQ_API_KEY,
+        "POLLINATIONS_API_KEY": data.POLLINATIONS_API_KEY
     }
 
     try:
@@ -253,7 +261,8 @@ async def publish_immediately(data: PublishNowData):
         "INSTAGRAM_ACCESS_TOKEN": data.INSTAGRAM_ACCESS_TOKEN,
         "LINKEDIN_ACCESS_TOKEN": data.LINKEDIN_ACCESS_TOKEN,
         "LINKEDIN_PERSON_URN": data.LINKEDIN_PERSON_URN,
-        "GROQ_API_KEY": data.GROQ_API_KEY
+        "GROQ_API_KEY": data.GROQ_API_KEY,
+        "POLLINATIONS_API_KEY": data.POLLINATIONS_API_KEY
     }
 
     # Capture stdout logs to display to user

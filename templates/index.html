@@ -563,6 +563,13 @@
                     </label>
                     <input type="password" id="GROQ_API_KEY" placeholder="gsk_...">
                 </div>
+                <div class="form-group">
+                    <label>
+                        <svg viewBox="0 0 24 24" style="fill:#10b981"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+                        Pollinations API Key (Optional)
+                    </label>
+                    <input type="password" id="POLLINATIONS_API_KEY" placeholder="Enter key (leaves watermark & fallback if empty)">
+                </div>
                 <button type="submit" class="btn btn-primary btn-icon" style="width: 100%; margin-top: 1rem;">
                     <svg viewBox="0 0 24 24"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
                     Save Configuration
@@ -695,7 +702,7 @@
             'TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID',
             'INSTAGRAM_BUSINESS_ACCOUNT_ID', 'INSTAGRAM_ACCESS_TOKEN',
             'LINKEDIN_ACCESS_TOKEN', 'LINKEDIN_PERSON_URN',
-            'GROQ_API_KEY'
+            'GROQ_API_KEY', 'POLLINATIONS_API_KEY'
         ];
 
         // Fetch Configuration from localStorage

@@ -56,7 +56,9 @@ def publish_post(topic, creds=None):
 
     local_image_path, public_image_url = generate_post_image(
         image_prompt,
-        output_path=f"generated_image_{uuid.uuid4().hex}.jpg"
+        output_path=f"generated_image_{uuid.uuid4().hex}.jpg",
+        topic=topic,
+        pollinations_api_key=creds.get("POLLINATIONS_API_KEY")
     )
 
     print("\nPublishing...")

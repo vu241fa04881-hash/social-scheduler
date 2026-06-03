@@ -2,10 +2,12 @@ import sys
 import uvicorn
 from app_web import app
 
-# Reconfigure stdout/stderr to utf-8 to prevent UnicodeEncodeError with emojis on Windows
+# Reconfigure stdout/stderr to prevent UnicodeEncodeError with emojis on Windows
 try:
-    sys.stdout.reconfigure(encoding='utf-8')
-    sys.stderr.reconfigure(encoding='utf-8')
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(encoding='utf-8', errors='backslashreplace')
+    if hasattr(sys.stderr, 'reconfigure'):
+        sys.stderr.reconfigure(encoding='utf-8', errors='backslashreplace')
 except Exception:
     pass
 
