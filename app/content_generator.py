@@ -10,6 +10,32 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+GROQ_TEXT_MODEL = os.getenv("GROQ_TEXT_MODEL", "openai/gpt-oss-120b")
+GROQ_VISION_MODEL = os.getenv("GROQ_VISION_MODEL", "qwen/qwen3.6-27b")
+
+def ensure_dependencies():
+    """
+    Checks that required Python packages are installed.
+    Prints a reminder to run `install_dependencies.bat` if needed.
+    """
+    try:
+        import importlib
+        required = {
+            "groq": "groq",
+            "requests": "requests",
+            "beautifulsoup4": "bs4",
+            "pillow": "PIL",
+            "dotenv": "dotenv",
+        }
+        missing = [package for package, module in required.items()
+                   if importlib.util.find_spec(module) is None]
+        if missing:
+            print("[Dependency Warning] Missing packages:", ", ".join(missing))
+            print("[Hint] Run install_dependencies.bat to install them.")
+    except Exception as e:
+        print("[Dependency Check Error]", e)
+
+
 def scrape_website(url):
     if not url:
         return ""
@@ -84,7 +110,7 @@ def make_search_decision(topic, client):
     """
     try:
         completion = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model=GROQ_TEXT_MODEL,
             messages=[{"role": "user", "content": prompt}],
             temperature=0.0,
             max_tokens=100
@@ -128,9 +154,9 @@ def analyze_image_with_groq(image_path, api_key):
         
         client = Groq(api_key=api_key)
         
-        # Use Groq's flagship vision model
+        # Use the configured Groq vision model.
         completion = client.chat.completions.create(
-            model="llama-3.2-11b-vision-preview",
+            model=GROQ_VISION_MODEL,
             messages=[
                 {
                     "role": "user",
@@ -162,6 +188,7 @@ def analyze_image_with_groq(image_path, api_key):
 def generate_post(topic, groq_api_key=None, website_url=None, image_path=None):
     load_dotenv(override=True)
     api_key = groq_api_key or os.getenv("GROQ_API_KEY")
+    ensure_dependencies()
     if not api_key:
         raise ValueError("Groq API Key not provided")
         
@@ -220,9 +247,9 @@ def generate_post(topic, groq_api_key=None, website_url=None, image_path=None):
     Make all contents unique.
     """
 
-    # Switched model to the active flagship: llama-3.3-70b-versatile
+    # Use the configured Groq text model for post generation.
     completion = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model=GROQ_TEXT_MODEL,
         messages=[
             {
                 "role": "user",

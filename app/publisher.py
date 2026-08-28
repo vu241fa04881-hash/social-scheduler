@@ -2,6 +2,8 @@ import re
 import uuid
 import os
 import requests
+from html import unescape
+from PIL import Image
 
 from app.content_generator import generate_post
 from app.telegram_post import send_telegram_message
@@ -25,15 +27,39 @@ def upload_to_tmpfiles(image_path):
     try:
         print(f"[Upload] Uploading user image {image_path} to tmpfiles.org...")
         url = "https://tmpfiles.org/api/v1/upload"
-        with open(image_path, "rb") as f:
+        normalized_path = f"{image_path}.instagram.jpg"
+        with Image.open(image_path) as image:
+            image.convert("RGB").save(normalized_path, "JPEG", quality=95)
+
+        with open(normalized_path, "rb") as f:
             response = requests.post(url, files={"file": f}, timeout=20)
         
         if response.status_code == 200:
             res_data = response.json()
             if res_data.get("status") == "success":
                 file_url = res_data["data"]["url"]
-                # Convert standard URL to direct download URL (required by Instagram Graph API)
-                direct_url = file_url.replace("https://tmpfiles.org/", "https://tmpfiles.org/dl/")
+                page_url = file_url.replace("https://tmpfiles.org/", "https://tmpfiles.org/dl/")
+                page_response = requests.get(page_url, timeout=20)
+                page_response.raise_for_status()
+
+                # tmpfiles first returns an HTML page; its canonical link contains
+                # the timestamped path that serves the actual image bytes.
+                matches = re.findall(
+                    r"https://tmpfiles\.org/dl/[^\"'\s<]+",
+                    unescape(page_response.text),
+                )
+                direct_url = next((match for match in matches if match != page_url), None)
+                if not direct_url:
+                    print("[Upload Error] tmpfiles.org did not provide a direct image URL")
+                    return None
+
+                image_response = requests.get(direct_url, stream=True, timeout=20)
+                content_type = image_response.headers.get("Content-Type", "")
+                image_response.close()
+                if not content_type.startswith("image/"):
+                    print(f"[Upload Error] Direct URL returned non-image content: {content_type}")
+                    return None
+
                 print(f"[Upload] Upload successful! Direct URL for Instagram: {direct_url}")
                 return direct_url
         print(f"[Upload Error] tmpfiles.org returned status {response.status_code}: {response.text}")
@@ -54,6 +80,9 @@ def publish_post(topic, creds=None, website_url=None, image_path=None):
         website_url=website_url,
         image_path=image_path
     )
+
+    # Reasoning-capable models may wrap their answer in private thought tags.
+    content = re.sub(r"<think>.*?</think>", "", content, flags=re.I | re.S).strip()
 
     thinking_content = extract_section(
         content,
@@ -87,11 +116,11 @@ def publish_post(topic, creds=None, website_url=None, image_path=None):
         print("="*40 + "\n")
 
     if not instagram_content:
-        print("Warning: Instagram content block not found or empty.")
+        print("Warning: Instagram content block not found or empty; skipping Instagram.")
     if not linkedin_content:
-        print("Warning: LinkedIn content block not found or empty.")
+        print("Warning: LinkedIn content block not found or empty; skipping LinkedIn.")
     if not telegram_content:
-        print("Warning: Telegram content block not found or empty.")
+        print("Warning: Telegram content block not found or empty; skipping Telegram.")
 
     # Image logic: If user provided an image, upload to tmpfiles.org and use it.
     # Otherwise, generate image using Pollinations engine.
@@ -117,22 +146,33 @@ def publish_post(topic, creds=None, website_url=None, image_path=None):
 
     print("\nPublishing...")
 
-    post_instagram(
-        instagram_content,
-        public_image_url,
-        instagram_business_account_id=creds.get("INSTAGRAM_BUSINESS_ACCOUNT_ID"),
-        access_token=creds.get("INSTAGRAM_ACCESS_TOKEN")
-    )
-    post_linkedin(
-        linkedin_content,
-        access_token=creds.get("LINKEDIN_ACCESS_TOKEN"),
-        person_urn=creds.get("LINKEDIN_PERSON_URN")
-    )
-    send_telegram_message(
-        telegram_content,
-        bot_token=creds.get("TELEGRAM_BOT_TOKEN"),
-        chat_id=creds.get("TELEGRAM_CHAT_ID"),
-        image_path=local_image_path
-    )
+    results = {}
+    if instagram_content:
+        results["Instagram"] = post_instagram(
+            instagram_content,
+            public_image_url,
+            instagram_business_account_id=creds.get("INSTAGRAM_BUSINESS_ACCOUNT_ID"),
+            access_token=creds.get("INSTAGRAM_ACCESS_TOKEN")
+        )
+    if linkedin_content:
+        results["LinkedIn"] = post_linkedin(
+            linkedin_content,
+            access_token=creds.get("LINKEDIN_ACCESS_TOKEN"),
+            person_urn=creds.get("LINKEDIN_PERSON_URN")
+        )
+    if telegram_content:
+        results["Telegram"] = send_telegram_message(
+            telegram_content,
+            bot_token=creds.get("TELEGRAM_BOT_TOKEN"),
+            chat_id=creds.get("TELEGRAM_CHAT_ID"),
+            image_path=local_image_path
+        )
+
+    failed = [platform for platform, success in results.items() if success is False]
+    succeeded = [platform for platform, success in results.items() if success is True]
+    if failed:
+        print(f"\nPUBLISHING INCOMPLETE - succeeded: {', '.join(succeeded) or 'none'}; failed: {', '.join(failed)}")
+        return results
 
     print("\nPOST PUBLISHED SUCCESSFULLY")
+    return results

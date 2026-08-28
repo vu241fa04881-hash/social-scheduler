@@ -922,7 +922,7 @@
                 });
                 
                 const res = await response.json();
-                if (response.ok) {
+                if (response.ok && res.status === 'success') {
                     showToast(res.message);
                     document.getElementById('topicInput').value = '';
                     document.getElementById('websiteUrlInput').value = '';

@@ -316,16 +316,25 @@ async def publish_immediately(data: PublishNowData):
     log_stream = io.StringIO()
     try:
         with redirect_stdout(log_stream):
-            publish_post(
+            results = publish_post(
                 data.topic, 
                 creds=creds,
                 website_url=data.website_url,
                 image_path=data.image_path
             )
         logs = log_stream.getvalue()
+        failed = [platform for platform, success in results.items() if success is False]
+        if failed:
+            return {
+                "status": "partial",
+                "message": f"Publishing incomplete. Failed: {', '.join(failed)}",
+                "results": results,
+                "logs": logs
+            }
         return {
             "status": "success",
             "message": "Post generated and published successfully!",
+            "results": results,
             "logs": logs
         }
     except Exception as e:

@@ -12,7 +12,7 @@ def post_instagram(caption, image_url, instagram_business_account_id=None, acces
 
     if not ig_user_id or not token:
         print("Instagram Error: INSTAGRAM_BUSINESS_ACCOUNT_ID or INSTAGRAM_ACCESS_TOKEN not provided")
-        return
+        return False
 
     print("Uploading photo to Instagram via Graph API...")
     
@@ -31,12 +31,12 @@ def post_instagram(caption, image_url, instagram_business_account_id=None, acces
         
         if response.status_code != 200:
             print("Instagram Media Container Error:", response_data)
-            return
+            return False
             
         container_id = response_data.get("id")
         if not container_id:
             print("Instagram Error: Failed to retrieve container ID")
-            return
+            return False
             
         print(f"Media container created successfully (ID: {container_id}).")
         
@@ -66,10 +66,10 @@ def post_instagram(caption, image_url, instagram_business_account_id=None, acces
                 break
             elif status_code == "ERROR":
                 print("Instagram Error: Media container processing failed.")
-                return
+                return False
         else:
             print("Instagram Error: Container processing timed out.")
-            return
+            return False
             
         # Step 3: Publish container
         # Endpoint: POST /v19.0/{ig-user-id}/media_publish
@@ -84,8 +84,11 @@ def post_instagram(caption, image_url, instagram_business_account_id=None, acces
         
         if publish_response.status_code == 200:
             print(f"Instagram Post Published Successfully (Media ID: {publish_data.get('id')})")
+            return True
         else:
             print("Instagram Publish Error:", publish_data)
+            return False
             
     except Exception as e:
         print("Instagram Graph API Error:", e)
+        return False

@@ -10,7 +10,7 @@ def post_linkedin(content, access_token=None, person_urn=None):
 
     if not token or not urn:
         print("LinkedIn Error: LINKEDIN_ACCESS_TOKEN or LINKEDIN_PERSON_URN not provided")
-        return
+        return False
 
     url = "https://api.linkedin.com/v2/ugcPosts"
     headers = {
@@ -36,10 +36,13 @@ def post_linkedin(content, access_token=None, person_urn=None):
     response = requests.post(
         url,
         headers=headers,
-        json=data
+        json=data,
+        timeout=30
     )
     print("LinkedIn Response:", response.status_code)
     if response.status_code == 201:
         print("LinkedIn Post Published")
+        return True
     else:
         print(response.text)
+        return False
