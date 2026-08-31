@@ -68,7 +68,7 @@ def upload_to_tmpfiles(image_path):
     return None
 
 
-def publish_post(topic, creds=None, website_url=None, image_path=None):
+def publish_post(topic, creds=None, website_url=None, image_path=None, user_content=None):
     if creds is None:
         creds = {}
 
@@ -78,7 +78,8 @@ def publish_post(topic, creds=None, website_url=None, image_path=None):
         topic, 
         groq_api_key=creds.get("GROQ_API_KEY"),
         website_url=website_url,
-        image_path=image_path
+        image_path=image_path,
+        user_content=user_content
     )
 
     # Reasoning-capable models may wrap their answer in private thought tags.

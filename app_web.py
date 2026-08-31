@@ -77,18 +77,21 @@ def restore_scheduled_jobs():
     count = 0
     for post in posts:
         try:
-            if len(post) == 5:
+            if len(post) == 6:
+                post_id, topic, schedule_time_str, website_url, image_path, user_content = post
+            elif len(post) == 5:
                 post_id, topic, schedule_time_str, website_url, image_path = post
+                user_content = ""
             else:
                 post_id, topic, schedule_time_str = post
-                website_url, image_path = "", ""
+                website_url, image_path, user_content = "", "", ""
             
             run_time = datetime.strptime(schedule_time_str, "%Y-%m-%d %H:%M")
             if run_time > now:
                 # Credentials are not stored on disk; restored jobs run with empty credentials (fallback to environment variables)
                 creds = {}
                 # Add to scheduler with the matching post_id key
-                add_job(run_time, publish_post, topic, job_id=f"job_{post_id}", creds=creds, website_url=website_url, image_path=image_path)
+                add_job(run_time, publish_post, topic, job_id=f"job_{post_id}", creds=creds, website_url=website_url, image_path=image_path, user_content=user_content)
                 count += 1
         except Exception as e:
             print(f"Failed to restore job: {e}")
@@ -144,6 +147,7 @@ class ScheduleData(BaseModel):
     time: str
     website_url: str = ""
     image_path: str = ""
+    user_content: str = ""
     TELEGRAM_BOT_TOKEN: str = ""
     TELEGRAM_CHAT_ID: str = ""
     INSTAGRAM_BUSINESS_ACCOUNT_ID: str = ""
@@ -157,6 +161,7 @@ class PublishNowData(BaseModel):
     topic: str
     website_url: str = ""
     image_path: str = ""
+    user_content: str = ""
     TELEGRAM_BOT_TOKEN: str = ""
     TELEGRAM_CHAT_ID: str = ""
     INSTAGRAM_BUSINESS_ACCOUNT_ID: str = ""
@@ -221,17 +226,21 @@ async def list_posts():
         posts = get_posts()
         formatted_posts = []
         for post in posts:
-            if len(post) == 5:
+            if len(post) == 6:
+                post_id, topic, schedule_time, website_url, image_path, user_content = post
+            elif len(post) == 5:
                 post_id, topic, schedule_time, website_url, image_path = post
+                user_content = ""
             else:
                 post_id, topic, schedule_time = post
-                website_url, image_path = "", ""
+                website_url, image_path, user_content = "", "", ""
             formatted_posts.append({
                 "id": post_id,
                 "topic": topic,
                 "schedule_time": schedule_time,
                 "website_url": website_url,
-                "image_path": image_path
+                "image_path": image_path,
+                "user_content": user_content
             })
         return formatted_posts
     except Exception as e:
@@ -267,7 +276,8 @@ async def schedule_new_post(data: ScheduleData):
             data.topic, 
             run_time.strftime("%Y-%m-%d %H:%M"),
             website_url=data.website_url,
-            image_path=data.image_path
+            image_path=data.image_path,
+            user_content=data.user_content
         )
         
         # 2. Add job to scheduler using the unique row ID and custom credentials (stored in-memory in scheduler)
@@ -278,7 +288,8 @@ async def schedule_new_post(data: ScheduleData):
             job_id=f"job_{post_id}", 
             creds=creds,
             website_url=data.website_url,
-            image_path=data.image_path
+            image_path=data.image_path,
+            user_content=data.user_content
         )
         
         return {"status": "success", "message": f"Post scheduled successfully for {run_time}"}
@@ -320,7 +331,8 @@ async def publish_immediately(data: PublishNowData):
                 data.topic, 
                 creds=creds,
                 website_url=data.website_url,
-                image_path=data.image_path
+                image_path=data.image_path,
+                user_content=data.user_content
             )
         logs = log_stream.getvalue()
         failed = [platform for platform, success in results.items() if success is False]

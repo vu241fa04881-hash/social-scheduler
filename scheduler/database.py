@@ -26,11 +26,13 @@ def create_table():
             cursor.execute("DROP TABLE scheduled_posts")
             table_exists = False
         else:
-            # Check for website_url and image_path and add them dynamically
+            # Check for website_url, image_path, and user_content and add them dynamically
             if "website_url" not in columns:
                 cursor.execute("ALTER TABLE scheduled_posts ADD COLUMN website_url TEXT DEFAULT ''")
             if "image_path" not in columns:
                 cursor.execute("ALTER TABLE scheduled_posts ADD COLUMN image_path TEXT DEFAULT ''")
+            if "user_content" not in columns:
+                cursor.execute("ALTER TABLE scheduled_posts ADD COLUMN user_content TEXT DEFAULT ''")
             
     if not table_exists:
         cursor.execute("""
@@ -39,7 +41,8 @@ def create_table():
             topic TEXT NOT NULL,
             schedule_time TEXT NOT NULL,
             website_url TEXT DEFAULT '',
-            image_path TEXT DEFAULT ''
+            image_path TEXT DEFAULT '',
+            user_content TEXT DEFAULT ''
         )
         """)
         
@@ -47,16 +50,16 @@ def create_table():
     conn.close()
 
 
-def add_post(topic, schedule_time, website_url="", image_path=""):
+def add_post(topic, schedule_time, website_url="", image_path="", user_content=""):
     
     conn = sqlite3.connect(DB_PATH)
     
     cursor = conn.cursor()
 
     cursor.execute("""
-    INSERT INTO scheduled_posts (topic, schedule_time, website_url, image_path)
-    VALUES (?, ?, ?, ?)
-    """, (topic, schedule_time, website_url, image_path))
+    INSERT INTO scheduled_posts (topic, schedule_time, website_url, image_path, user_content)
+    VALUES (?, ?, ?, ?, ?)
+    """, (topic, schedule_time, website_url, image_path, user_content))
 
     post_id = cursor.lastrowid
 
@@ -70,7 +73,7 @@ def get_posts():
     cursor = conn.cursor()
 
     cursor.execute("""
-    SELECT id, topic, schedule_time, website_url, image_path
+    SELECT id, topic, schedule_time, website_url, image_path, user_content
     FROM scheduled_posts
     """)
 

@@ -2,6 +2,7 @@ import os
 import base64
 import requests
 import re
+import hashlib
 from PIL import Image
 import io
 from bs4 import BeautifulSoup
@@ -12,6 +13,21 @@ load_dotenv()
 
 GROQ_TEXT_MODEL = os.getenv("GROQ_TEXT_MODEL", "openai/gpt-oss-120b")
 GROQ_VISION_MODEL = os.getenv("GROQ_VISION_MODEL", "qwen/qwen3.6-27b")
+
+def generate_content_hash(user_content):
+    """
+    Generate a hash of the user-provided content for reference/tracking.
+    This is optional and used when user provides their own content.
+    """
+    if not user_content:
+        return None
+    try:
+        content_bytes = user_content.encode('utf-8')
+        content_hash = hashlib.sha256(content_bytes).hexdigest()[:16]  # First 16 chars
+        return content_hash
+    except Exception as e:
+        print(f"[Hash Generation] Error generating content hash: {e}")
+        return None
 
 def ensure_dependencies():
     """
@@ -185,7 +201,7 @@ def analyze_image_with_groq(image_path, api_key):
         print(f"[Vision] Error during image analysis: {e}")
         return f"[Failed to analyze image: {str(e)}]"
 
-def generate_post(topic, groq_api_key=None, website_url=None, image_path=None):
+def generate_post(topic, groq_api_key=None, website_url=None, image_path=None, user_content=None):
     load_dotenv(override=True)
     api_key = groq_api_key or os.getenv("GROQ_API_KEY")
     ensure_dependencies()
@@ -193,6 +209,12 @@ def generate_post(topic, groq_api_key=None, website_url=None, image_path=None):
         raise ValueError("Groq API Key not provided")
         
     client = Groq(api_key=api_key)
+    
+    # Generate content hash if user provided content
+    content_hash = None
+    if user_content:
+        content_hash = generate_content_hash(user_content)
+        print(f"[Content] User-provided content hash: {content_hash}")
         
     # Get scraper context. Prioritize manual website URL if provided.
     # Otherwise, decide autonomously if search is needed.
@@ -202,15 +224,19 @@ def generate_post(topic, groq_api_key=None, website_url=None, image_path=None):
     if website_url:
         website_context = scrape_website(website_url)
     else:
-        needs_search, search_query = make_search_decision(topic, client)
-        if needs_search and search_query:
-            print(f"[Search Decision] AI decided search is beneficial for topic: '{topic}'")
-            searched_url = search_duckduckgo(search_query)
-            if searched_url:
-                target_url = searched_url
-                website_context = scrape_website(searched_url)
+        # Only perform auto-search if user hasn't provided their own content
+        if not user_content:
+            needs_search, search_query = make_search_decision(topic, client)
+            if needs_search and search_query:
+                print(f"[Search Decision] AI decided search is beneficial for topic: '{topic}'")
+                searched_url = search_duckduckgo(search_query)
+                if searched_url:
+                    target_url = searched_url
+                    website_context = scrape_website(searched_url)
+            else:
+                print("[Search Decision] AI decided no web search is needed for this topic.")
         else:
-            print("[Search Decision] AI decided no web search is needed for this topic.")
+            print("[Search Decision] Skipping web search since user provided custom content.")
         
     # Get image context if image path is provided
     image_context = ""
@@ -219,6 +245,12 @@ def generate_post(topic, groq_api_key=None, website_url=None, image_path=None):
         
     prompt = f"Create platform-specific social media posts based on the user's primary topic.\n"
     prompt += f"Primary Topic: {topic}\n"
+    
+    # Add user-provided content if available
+    if user_content:
+        prompt += f"\nUser-Provided Content (Reference):\n{user_content}\n"
+        if content_hash:
+            prompt += f"[Content Reference Hash: {content_hash}]\n"
     
     if website_context:
         prompt += f"\nAdditional Context Scraped from URL ({target_url}):\n{website_context}\n"
@@ -230,7 +262,7 @@ def generate_post(topic, groq_api_key=None, website_url=None, image_path=None):
     Format exactly:
 
     THINKING:
-    Provide a brief thinking process details explaining your content plan and reasoning based on the inputs provided (topic, website url, and/or image description).
+    Provide a brief thinking process details explaining your content plan and reasoning based on the inputs provided (topic, user content, website url, and/or image description).
 
     INSTAGRAM:
     short trendy caption with hashtags
